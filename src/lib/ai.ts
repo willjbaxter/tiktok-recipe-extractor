@@ -1,7 +1,5 @@
 import OpenAI from 'openai';
 
-
-
 const recipeExtractionSchema = {
   name: "extract_recipe",
   description: "Extract structured recipe information from cooking videos",
@@ -49,22 +47,6 @@ const recipeExtractionSchema = {
   }
 };
 
-
-function adjustServings(recipe:any, newServings:number) {
-    const servingRatio = newServings / recipe.recipe_overview.servings;
-    const adjustedRecipe = {
-      ...recipe,
-      recipe_overview: {
-        ...recipe.recipe_overview,
-        servings: newServings
-      },
-      ingredients: recipe.ingredients.map((ingredient:any) => ({
-        ...ingredient,
-        amount: adjustAmount(ingredient.amount, servingRatio)
-      }))
-    };
-    return adjustedRecipe;
-  }
   
   function adjustAmount(amount:string, ratio:number) {
     const numericAmount = parseFloat(amount);
@@ -103,30 +85,10 @@ export async function transcribeRecipe(videoUrl:string,apiKey:string) {
       }],
       tool_choice: { type: "function", function: { name: "extract_recipe" } }
     });
-    console.log(JSON.parse(response.choices[0].message.tool_calls?.[0]?.function.arguments || ""))
     return JSON.parse(response.choices[0].message.tool_calls?.[0]?.function.arguments || "")
 
-    // return JSON.parse(response.choices[0].message.tool_calls[0].function.arguments || "");
   } catch (error) {
     console.error('Error transcribing recipe:', error);
     throw error;
   }
 }
-
-
-// // Usage example
-// async function main() {
-//   try {
-//     const videoUrl = "https://www.youtube.com/watch?v=4jm-1EcLWM4&ab_channel=MenWithThePot";
-//     const recipe = await transcribeRecipe(videoUrl);
-//     console.log('Extracted Recipe:', recipe);
-    
-//     // Example of adjusting servings
-//     const adjustedRecipe = adjustServings(recipe, 4);
-//     console.log('Adjusted Recipe:', adjustedRecipe);
-//   } catch (error) {
-//     console.error('Error:', error);
-//   }
-// }
-
-// main();

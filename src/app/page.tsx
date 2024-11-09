@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import GitHubButton from 'react-github-btn'
 import { ToastContainer, toast } from 'react-toastify'
 
 import GradientsPanel from "@/components/panels/GradientsPanel"
