@@ -39,12 +39,12 @@ export default function ConfigPanel({ onExtract,loading }: ConfigPanelProps) {
     </Card>
     <Card>
       <CardHeader>
-        <CardTitle>OpenAI API Key</CardTitle>
+        <CardTitle>Gemini API Key</CardTitle>
       </CardHeader>
       <CardContent>
         <Input 
           type="password"
-          placeholder="Enter your OpenAI API key" 
+          placeholder="Enter your Gemini API key" 
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           className="mb-4"

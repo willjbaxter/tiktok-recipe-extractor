@@ -1,0 +1,52 @@
+# Query: openai
+# ContextLines: 1
+
+15 results - 4 files
+
+package-lock.json:
+    17          "next": "15.0.3",
+    18:         "openai": "^4.71.1",
+    19          "react": "19.0.0-rc-66855b96-20241106",
+
+  1649      },
+  1650:     "node_modules/openai": {
+  1651        "version": "4.71.1",
+  1652:       "resolved": "https://registry.npmjs.org/openai/-/openai-4.71.1.tgz",
+  1653        "integrity": "sha512-C6JNMaQ1eijM0lrjiRUL3MgThVP5RdwNAghpbJFdW0t11LzmyqON8Eh8MuUuEZ+CeD6bgYl2Fkn2BoptVxv9Ug==",
+
+  1663        "bin": {
+  1664:         "openai": "bin/cli"
+  1665        },
+
+  1674      },
+  1675:     "node_modules/openai/node_modules/@types/node": {
+  1676        "version": "18.19.64",
+
+  1682      },
+  1683:     "node_modules/openai/node_modules/undici-types": {
+  1684        "version": "5.26.5",
+
+package.json:
+  18      "next": "15.0.3",
+  19:     "openai": "^4.71.1",
+  20      "react": "19.0.0-rc-66855b96-20241106",
+
+src/components/panels/configPanel.tsx:
+  41        <CardHeader>
+  42:         <CardTitle>OpenAI API Key</CardTitle>
+  43        </CardHeader>
+
+  46            type="password"
+  47:           placeholder="Enter your OpenAI API key" 
+  48            value={apiKey}
+
+src/lib/ai.ts:
+   1: import OpenAI from 'openai';
+   2  
+
+  58    try {
+  59:     const openai = new OpenAI({
+  60          apiKey,
+  61        });
+  62:     const response = await openai.chat.completions.create({
+  63        model: "gpt-4o-2024-08-06",

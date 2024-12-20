@@ -31,6 +31,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
 
 # vercel
 .vercel
@@ -38,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore environment variable files
+.env
+.env.local
+
+# But do not ignore .env.example
+!.env.example
+
+# Other ignore patterns...
+node_modules/
+dist/
+.next/
+# Add any other directories or files you want to ignore
