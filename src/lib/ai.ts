@@ -75,23 +75,18 @@ export async function generateRecipe(videoUrl: string, apiKey: string) {
         parts: [{
           text: RECIPE_PROMPT(videoUrl)
         }]
-      }],
-      generationConfig: {
-        temperature: 0.3, // Lower temperature for more focused responses
-        topP: 0.8,
-        topK: 40
-      },
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_DANGEROUS",
-          threshold: "BLOCK_NONE"
-        }
-      ]
+      }]
     };
 
     const apiEndpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
     
     console.log('Sending request to Gemini API...');
+    console.log('API Key format check:', {
+      length: apiKey.length,
+      startsWithAI: apiKey.startsWith('AI'),
+      containsSpaces: apiKey.includes(' '),
+      hasSpecialChars: /[^a-zA-Z0-9-]/.test(apiKey)
+    });
     const response = await axios.post<GeminiResponse>(
       apiEndpoint,
       requestBody,
