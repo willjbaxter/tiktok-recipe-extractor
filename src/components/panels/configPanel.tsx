@@ -8,13 +8,12 @@ import { Utensils } from 'lucide-react'
 import GitHubButton from 'react-github-btn'
 
 type ConfigPanelProps = {
-  onExtract: (videoUrl: string, apiKey: string) => void
+  onExtract: (videoUrl: string) => void  // Remove apiKey from props
   loading: boolean
 }
 
 export default function ConfigPanel({ onExtract, loading }: ConfigPanelProps) {
   const [videoUrl, setVideoUrl] = useState('')
-  const [apiKey, setApiKey] = useState('')
 
   return (
     <div className="w-1/2 p-6 space-y-6">
@@ -44,23 +43,9 @@ export default function ConfigPanel({ onExtract, loading }: ConfigPanelProps) {
           />
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Gemini API Key</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input 
-            type="password"
-            placeholder="Enter your Gemini API key" 
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="mb-4"
-          />
-        </CardContent>
-      </Card>
       <Button 
         className="w-full bg-orange-500 hover:bg-orange-600"
-        onClick={() => onExtract(videoUrl, apiKey)}
+        onClick={() => onExtract(videoUrl)}
         disabled={loading}
       >
         {loading ? 'Extracting...' : 'Extract Recipe'}
