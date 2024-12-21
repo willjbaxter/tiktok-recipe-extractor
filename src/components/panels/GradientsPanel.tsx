@@ -33,7 +33,7 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
     )
   }
 
-  if (!recipeData) {
+  if (!recipeData || !recipeData.recipe_overview) {
     return (
       <div className="w-1/2 p-6 bg-white">
         <Card className="h-full">
@@ -45,26 +45,30 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
     )
   }
 
+  const { recipe_overview, ingredients = [], equipment = [], instructions = [] } = recipeData;
+
   return (
     <div className="w-1/2 p-6 bg-white">
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-blue-500">{recipeData.recipe_overview.title}</CardTitle>
+          <CardTitle className="text-blue-500">{recipe_overview.title || 'Untitled Recipe'}</CardTitle>
           <div className="flex gap-4 text-sm text-muted-foreground">
-            <div>Prep: {recipeData.recipe_overview.prep_time}</div>
-            <div>Cook: {recipeData.recipe_overview.cook_time}</div>
-            <div>Servings: {recipeData.recipe_overview.servings.toString()}</div>
-            <div>Difficulty: {recipeData.recipe_overview.difficulty}</div>
+            <div>Prep: {recipe_overview.prep_time || 'N/A'}</div>
+            <div>Cook: {recipe_overview.cook_time || 'N/A'}</div>
+            <div>Servings: {typeof recipe_overview.servings === 'number' ? recipe_overview.servings.toString() : 'N/A'}</div>
+            <div>Difficulty: {recipe_overview.difficulty || 'N/A'}</div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
             <h3 className="font-semibold text-lg mb-3 text-orange-500">Ingredients</h3>
             <ul className="space-y-2">
-              {recipeData.ingredients.map((ingredient, index) => (
+              {ingredients.map((ingredient, index) => (
                 <li key={index} className="flex items-start">
-                  <span className="font-medium">{ingredient.amount} {ingredient.unit}</span>
-                  <span className="mx-2">{ingredient.item}</span>
+                  <span className="font-medium">
+                    {ingredient.amount || ''} {ingredient.unit || ''}
+                  </span>
+                  <span className="mx-2">{ingredient.item || 'Unknown ingredient'}</span>
                   {ingredient.notes && (
                     <span className="text-muted-foreground">({ingredient.notes})</span>
                   )}
@@ -78,7 +82,7 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
           <div>
             <h3 className="font-semibold text-lg mb-3 text-orange-500">Equipment Needed</h3>
             <ul className="list-disc list-inside space-y-1">
-              {recipeData.equipment.map((item, index) => (
+              {equipment.map((item, index) => (
                 <li key={index}>{item}</li>
               ))}
             </ul>
@@ -89,7 +93,7 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
           <div>
             <h3 className="font-semibold text-lg mb-3 text-orange-500">Instructions</h3>
             <div className="whitespace-pre-line text-muted-foreground">
-              {recipeData.instructions.map((instruction, index) => (
+              {instructions.map((instruction, index) => (
                 <div key={index}> {index+1}. {instruction}</div>
               ))}
             </div>
