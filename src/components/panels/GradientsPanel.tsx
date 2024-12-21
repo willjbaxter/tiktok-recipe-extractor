@@ -1,8 +1,30 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { RecipeData } from "@/lib/type"
-import { Separator } from "@/components/ui/separator"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { Separator } from "../ui/separator"
+
+// Define RecipeData type here since we can't access it from @/lib/type
+interface RecipeOverview {
+  title: string
+  prep_time: string
+  cook_time: string
+  servings: string
+  difficulty: string
+}
+
+interface Ingredient {
+  amount: string
+  unit: string
+  item: string
+  notes?: string
+}
+
+interface RecipeData {
+  recipe_overview: RecipeOverview
+  ingredients: Ingredient[]
+  equipment: string[]
+  instructions: string[]
+}
 
 export default function GradientsPanel({ recipeData, loading }: { recipeData?: RecipeData, loading: boolean }) {
   if (loading) {
@@ -44,7 +66,7 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
       </div>
     )
   }
-console.log(recipeData)
+
   return (
     <div className="w-1/2 p-6 bg-white">
       <Card className="h-full">
