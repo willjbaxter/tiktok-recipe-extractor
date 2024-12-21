@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Define the base prompt template for recipe extraction
 const RECIPE_PROMPT = (videoUrl: string) => `
 Extract the recipe from this TikTok video: ${videoUrl}
 
@@ -25,23 +24,23 @@ Please provide the recipe in the following structured format:
   "instructions": ["[Step-by-step Instructions]"]
 }`;
 
-/**
- * Generates a recipe based on the TikTok video URL using Google's Gemini API.
- * @param videoUrl - The URL of the TikTok video containing the recipe
- * @param apiKey - The Gemini API key
- * @returns A promise that resolves to the structured recipe data
- */
 export async function generateRecipe(videoUrl: string, apiKey: string) {
   try {
+    console.log('Attempting to call Gemini API with URL:', videoUrl);
+    
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: RECIPE_PROMPT(videoUrl)
+        }]
+      }]
+    };
+    
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
     const response = await axios.post(
       'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent',
-      {
-        contents: [{
-          parts: [{
-            text: RECIPE_PROMPT(videoUrl)
-          }]
-        }]
-      },
+      requestBody,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -53,18 +52,43 @@ export async function generateRecipe(videoUrl: string, apiKey: string) {
       }
     );
 
-    // Extract the response text from Gemini's response
+    console.log('Gemini API response:', JSON.stringify(response.data, null, 2));
+
+    if (!response.data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error('Unexpected API response structure:', response.data);
+      throw new Error('Invalid API response structure');
+    }
+
     const generatedText = response.data.candidates[0].content.parts[0].text;
     
-    // Parse the JSON response
     try {
-      return JSON.parse(generatedText);
-    } catch (parseError) {
-      console.error('Error parsing Gemini response:', parseError);
+      const parsedData = JSON.parse(generatedText);
+      console.log('Successfully parsed recipe data:', parsedData);
+      return parsedData;
+    } catch (error) {
+      console.error('Error parsing Gemini response:', error);
+      console.error('Raw text that failed to parse:', generatedText);
+      if (error instanceof Error) {
+        throw new Error('Failed to parse recipe data: ' + error.message);
+      }
       throw new Error('Failed to parse recipe data');
     }
-  } catch (error: any) {
-    console.error('Error calling Gemini API:', error.response?.data || error.message);
-    throw new Error('Failed to generate recipe');
+  } catch (error) {
+    console.error('Detailed error:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      response: (error as any).response?.data,
+      status: (error as any).response?.status,
+      headers: (error as any).response?.headers
+    });
+    
+    if ((error as any).response?.status === 401) {
+      throw new Error('API key authentication failed');
+    }
+    
+    if ((error as any).response?.status === 400) {
+      throw new Error('Invalid request to Gemini API: ' + (error as any).response.data?.error?.message);
+    }
+    
+    throw new Error('Failed to generate recipe: ' + ((error as any).response?.data?.error?.message || (error instanceof Error ? error.message : 'Unknown error')));
   }
 }
