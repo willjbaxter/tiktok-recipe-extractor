@@ -2,29 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Separator } from "../ui/separator"
-
-// Define RecipeData type here since we can't access it from @/lib/type
-interface RecipeOverview {
-  title: string
-  prep_time: string
-  cook_time: string
-  servings: string
-  difficulty: string
-}
-
-interface Ingredient {
-  amount: string
-  unit: string
-  item: string
-  notes?: string
-}
-
-interface RecipeData {
-  recipe_overview: RecipeOverview
-  ingredients: Ingredient[]
-  equipment: string[]
-  instructions: string[]
-}
+import { RecipeData } from "../../lib/type"
 
 export default function GradientsPanel({ recipeData, loading }: { recipeData?: RecipeData, loading: boolean }) {
   if (loading) {
@@ -75,7 +53,7 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
           <div className="flex gap-4 text-sm text-muted-foreground">
             <div>Prep: {recipeData.recipe_overview.prep_time}</div>
             <div>Cook: {recipeData.recipe_overview.cook_time}</div>
-            <div>Servings: {recipeData.recipe_overview.servings}</div>
+            <div>Servings: {recipeData.recipe_overview.servings.toString()}</div>
             <div>Difficulty: {recipeData.recipe_overview.difficulty}</div>
           </div>
         </CardHeader>

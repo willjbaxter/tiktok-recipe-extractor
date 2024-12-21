@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 
-import GradientsPanel from "@/components/panels/GradientsPanel"
-import ConfigPanel from "@/components/panels/configPanel"
-import { RecipeData } from '@/lib/type'
+import GradientsPanel from '../components/panels/GradientsPanel'
+import ConfigPanel from '../components/panels/configPanel'
+import { RecipeData } from '../lib/type'
 
 
 export default function RecipeExtractor() {
