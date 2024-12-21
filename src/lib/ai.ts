@@ -1,10 +1,8 @@
 import axios from 'axios';
 
-const RECIPE_PROMPT = (videoUrl: string) => `You are a recipe extraction assistant. Your task is to extract recipe information from a TikTok video URL and return it in a specific JSON format.
+const RECIPE_PROMPT = (videoUrl: string) => `You are a JSON generator for recipe data. Extract recipe information from this TikTok video URL: ${videoUrl}
 
-For this TikTok video: ${videoUrl}
-
-Return ONLY valid JSON that matches this exact structure, with no additional text or explanation:
+Return ONLY a JSON object in this EXACT format:
 {
   "recipe_overview": {
     "title": "Recipe Title",
@@ -15,32 +13,26 @@ Return ONLY valid JSON that matches this exact structure, with no additional tex
   },
   "ingredients": [
     {
-      "item": "Ingredient Name",
+      "item": "First Ingredient",
       "amount": "1",
       "unit": "cup",
-      "notes": "optional notes"
+      "notes": "at room temperature"
     }
   ],
   "equipment": [
-    "Required Equipment 1",
-    "Required Equipment 2"
+    "Bowl",
+    "Whisk"
   ],
   "instructions": [
-    "Step 1 instruction",
-    "Step 2 instruction"
+    "First step of the recipe",
+    "Second step of the recipe"
   ]
 }
 
-Remember:
-1. Return ONLY the JSON object, no other text
-2. Ensure all strings are properly quoted
-3. Numbers should not be in quotes
-4. Array elements should be properly comma-separated`;
+IMPORTANT: Return ONLY the JSON. No other text, explanations, or markdown formatting.`;
 
 export async function generateRecipe(videoUrl: string, apiKey: string) {
   try {
-    console.log('Attempting to call Gemini API with URL:', videoUrl);
-    
     const requestBody = {
       contents: [{
         parts: [{
@@ -50,7 +42,7 @@ export async function generateRecipe(videoUrl: string, apiKey: string) {
     };
 
     const apiEndpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
-
+    
     const response = await axios.post(
       apiEndpoint,
       requestBody,
@@ -61,47 +53,34 @@ export async function generateRecipe(videoUrl: string, apiKey: string) {
       }
     );
 
-    console.log('Gemini API response:', JSON.stringify(response.data, null, 2));
-
-    if (!response.data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      console.error('Unexpected API response structure:', response.data);
-      throw new Error('Invalid API response structure');
-    }
-
     const generatedText = response.data.candidates[0].content.parts[0].text;
-    console.log('Raw generated text:', generatedText);
+    console.log('Raw response from Gemini:', generatedText);
+    
+    // Try to extract just the JSON part if there's any surrounding text
+    let jsonText = generatedText;
+    const jsonStart = generatedText.indexOf('{');
+    const jsonEnd = generatedText.lastIndexOf('}');
+    
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      jsonText = generatedText.substring(jsonStart, jsonEnd + 1);
+    }
+    
+    console.log('Attempting to parse JSON:', jsonText);
     
     try {
-      // Try to extract JSON if there's any surrounding text
-      const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-      const jsonString = jsonMatch ? jsonMatch[0] : generatedText;
-      
-      const parsedData = JSON.parse(jsonString);
-      console.log('Successfully parsed recipe data:', parsedData);
+      const parsedData = JSON.parse(jsonText);
       return parsedData;
     } catch (error) {
-      console.error('Error parsing Gemini response:', error);
-      console.error('Raw text that failed to parse:', generatedText);
+      console.error('JSON Parse Error. Text at position 1256:', jsonText.substring(1250, 1260));
       if (error instanceof Error) {
         throw new Error('Failed to parse recipe data: ' + error.message);
       }
       throw new Error('Failed to parse recipe data');
     }
   } catch (error) {
-    console.error('Detailed error:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      response: (error as any).response?.data,
-      status: (error as any).response?.status
-    });
-    
-    if ((error as any).response?.status === 401) {
-      throw new Error('API key authentication failed - please check API key format and permissions');
+    if (error instanceof Error) {
+      throw new Error('Failed to generate recipe: ' + error.message);
     }
-    
-    if ((error as any).response?.status === 400) {
-      throw new Error('Invalid request to Gemini API: ' + (error as any).response.data?.error?.message);
-    }
-    
-    throw new Error('Failed to generate recipe: ' + ((error as any).response?.data?.error?.message || (error instanceof Error ? error.message : 'Unknown error')));
+    throw new Error('Failed to generate recipe');
   }
 }
