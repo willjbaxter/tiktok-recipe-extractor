@@ -2,12 +2,37 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Separator } from "../ui/separator"
-import { RecipeData } from "../../lib/type"
+
+// Update the type to match Python service response
+interface RecipeData {
+  recipe: string;  // The raw recipe text
+  status: string;
+}
+
+function parseRecipeText(text: string) {
+  const sections: { [key: string]: string[] } = {};
+  let currentSection = '';
+  
+  text.split('\n').forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    
+    // Check for main section headers
+    if (line.endsWith(':')) {
+      currentSection = line.replace(':', '');
+      sections[currentSection] = [];
+    } else if (currentSection) {
+      sections[currentSection].push(line);
+    }
+  });
+  
+  return sections;
+}
 
 export default function GradientsPanel({ recipeData, loading }: { recipeData?: RecipeData, loading: boolean }) {
   if (loading) {
     return (
-      <div className="w-1/2  p-6 bg-white">
+      <div className="w-1/2 p-6 bg-white">
         <Card className="h-full">
           <CardHeader>
             <div className="h-8 bg-gray-200 rounded-md animate-pulse w-2/3" />
@@ -33,7 +58,7 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
     )
   }
 
-  if (!recipeData || !recipeData.recipe_overview) {
+  if (!recipeData || !recipeData.recipe) {
     return (
       <div className="w-1/2 p-6 bg-white">
         <Card className="h-full">
@@ -45,59 +70,79 @@ export default function GradientsPanel({ recipeData, loading }: { recipeData?: R
     )
   }
 
-  const { recipe_overview, ingredients = [], equipment = [], instructions = [] } = recipeData;
+  const sections = parseRecipeText(recipeData.recipe);
 
   return (
     <div className="w-1/2 p-6 bg-white">
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-blue-500">{recipe_overview.title || 'Untitled Recipe'}</CardTitle>
-          <div className="flex gap-4 text-sm text-muted-foreground">
-            <div>Prep: {recipe_overview.prep_time || 'N/A'}</div>
-            <div>Cook: {recipe_overview.cook_time || 'N/A'}</div>
-            <div>Servings: {typeof recipe_overview.servings === 'number' ? recipe_overview.servings.toString() : 'N/A'}</div>
-            <div>Difficulty: {recipe_overview.difficulty || 'N/A'}</div>
+          <CardTitle className="text-blue-500">
+            {sections['RECIPE NAME']?.[0] || 'Untitled Recipe'}
+          </CardTitle>
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            {sections['RECIPE NAME']?.slice(1).map((info, index) => (
+              <div key={index}>{info}</div>
+            ))}
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div>
-            <h3 className="font-semibold text-lg mb-3 text-orange-500">Ingredients</h3>
-            <ul className="space-y-2">
-              {ingredients.map((ingredient, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="font-medium">
-                    {ingredient.amount || ''} {ingredient.unit || ''}
-                  </span>
-                  <span className="mx-2">{ingredient.item || 'Unknown ingredient'}</span>
-                  {ingredient.notes && (
-                    <span className="text-muted-foreground">({ingredient.notes})</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="font-semibold text-lg mb-3 text-orange-500">Equipment Needed</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {equipment.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h3 className="font-semibold text-lg mb-3 text-orange-500">Instructions</h3>
-            <div className="whitespace-pre-line text-muted-foreground">
-              {instructions.map((instruction, index) => (
-                <div key={index}> {index+1}. {instruction}</div>
-              ))}
+          {sections['EQUIPMENT NEEDED'] && (
+            <div>
+              <h3 className="font-semibold text-lg mb-3 text-orange-500">Equipment Needed</h3>
+              <ul className="space-y-1">
+                {sections['EQUIPMENT NEEDED'].map((item, index) => (
+                  <li key={index} className="flex items-start">
+                    {item.replace('- ', '')}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
+
+          <Separator />
+
+          {sections['INGREDIENTS'] && (
+            <div>
+              <h3 className="font-semibold text-lg mb-3 text-orange-500">Ingredients</h3>
+              <ul className="space-y-2">
+                {sections['INGREDIENTS'].map((ingredient, index) => (
+                  <li key={index} className="flex items-start">
+                    {ingredient.replace('- ', '')}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <Separator />
+
+          {sections['INSTRUCTIONS'] && (
+            <div>
+              <h3 className="font-semibold text-lg mb-3 text-orange-500">Instructions</h3>
+              <div className="space-y-2">
+                {sections['INSTRUCTIONS'].map((instruction, index) => (
+                  <div key={index} className="flex gap-2">
+                    <span className="text-orange-500 font-medium">{index + 1}.</span>
+                    <span>{instruction.replace(/^\d+\.\s*/, '')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sections['RECIPE NOTES'] && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-orange-500">Recipe Notes</h3>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  {sections['RECIPE NOTES'].map((note, index) => (
+                    <li key={index}>{note.replace('- ', '')}</li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

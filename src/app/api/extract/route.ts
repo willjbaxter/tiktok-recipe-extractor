@@ -1,34 +1,50 @@
 import { NextResponse } from 'next/server';
-import { generateRecipe } from '../../../lib/ai';
 
 export async function POST(request: Request) {
   try {
     const { videoUrl } = await request.json();
-    const apiKey = process.env.GEMINI_API_KEY;
+    const pythonServiceUrl = process.env.PYTHON_SERVICE_URL;
 
-    // Add debugging
-    console.log('Received request with URL:', videoUrl);
+    console.log('Processing video URL:', videoUrl);
 
-    // Validate input
-    if (!videoUrl) {
-      console.log('Missing video URL');
-      return NextResponse.json({ error: 'Missing video URL' }, { status: 400 });
-    }
-
-    if (!apiKey) {
-      console.log('API key not configured');
+    if (!pythonServiceUrl) {
+      console.error('Python service URL not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    // Generate recipe using Gemini
-    const recipeData = await generateRecipe(videoUrl, apiKey);
-    console.log('Generated recipe data:', recipeData);
+    console.log('Calling Python service at:', pythonServiceUrl);
+    
+    const response = await fetch(`${pythonServiceUrl}/api/extract`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ video_url: videoUrl }),
+    });
 
-    return NextResponse.json({ data: recipeData });
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Python service error:', error);
+      return NextResponse.json(
+        { error: error.detail || 'Failed to process video' },
+        { status: response.status }
+      );
+    }
+
+    const responseData = await response.json();
+    console.log('Recipe data received:', responseData);
+
+    // The Python service returns { status: 'success', data: {...} }
+    // We want to maintain the same structure the frontend expects
+    return NextResponse.json({ 
+      data: responseData.data,
+      error: null 
+    });
+
   } catch (error: any) {
     console.error('API Route Error:', error.response?.data || error.message);
     return NextResponse.json(
-      { error: 'Failed to generate recipe: ' + (error.message || 'Unknown error') }, 
+      { error: 'Failed to extract recipe: ' + (error.message || 'Unknown error') },
       { status: 500 }
     );
   }

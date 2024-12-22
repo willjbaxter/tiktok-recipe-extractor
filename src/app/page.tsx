@@ -44,6 +44,7 @@ export default function RecipeExtractor() {
         return
       }
 
+      // The Python service returns { status: "success", data: { status: "success", recipe: "..." } }
       setRecipeData(responseData.data)
       toast.success('Recipe extracted successfully!')
     } catch (error) {
