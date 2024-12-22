@@ -6,14 +6,13 @@ export async function POST(request: Request) {
     const pythonServiceUrl = process.env.NEXT_PUBLIC_PYTHON_SERVICE_URL;
 
     console.log('Processing video URL:', videoUrl);
+    console.log('Python service URL:', pythonServiceUrl); // Add this log
 
     if (!pythonServiceUrl) {
       console.error('Python service URL not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    console.log('Calling Python service at:', pythonServiceUrl);
-    
     const response = await fetch(`${pythonServiceUrl}/api/extract`, {
       method: 'POST',
       headers: {
@@ -21,6 +20,8 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({ video_url: videoUrl }),
     });
+
+    console.log('Response status:', response.status); // Add this log
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -32,10 +33,12 @@ export async function POST(request: Request) {
     }
 
     const responseData = await response.json();
-    console.log('Recipe data received:', responseData);
+    console.log('Raw response data:', responseData); // Add this log
 
+    // Updated response handling
     return NextResponse.json({ 
-      data: responseData.data || responseData.recipe,
+      status: responseData.status,
+      data: responseData.data,
       error: null 
     });
 
